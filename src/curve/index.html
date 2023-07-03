@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+    <script type="importmap">
+      {
+        "imports": {
+          "three": "/node_modules/three/src/Three.js",
+          "three/examples/jsm/": "/node_modules/three/examples/jsm/"
+        }
+      }
+    </script>
+  </head>
+  <body>
+    <script type="module">
+      import * as THREE from "three";
+      import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
+      import { Flow } from "three/examples/jsm/modifiers/CurveModifier.js";
+
+      const renderer = new THREE.WebGLRenderer({});
+      renderer.setSize(800, 800);
+
+      const camera = new THREE.PerspectiveCamera(50, 1, 1, 100);
+      camera.position.set(0, 0, 50);
+
+      const scene = new THREE.Scene();
+      const boxGmt = new THREE.BoxGeometry(1, 1, 1);
+      const boxMtl = new THREE.MeshMatcapMaterial({ color: 0xff0000 });
+      const box = new THREE.Mesh(boxGmt, boxMtl);
+      // scene.add(box);
+
+      const curve = new THREE.CatmullRomCurve3([
+        new THREE.Vector3(0, 0, 0),
+        new THREE.Vector3(9, 0, 0),
+        new THREE.Vector3(10, 1, 0),
+        new THREE.Vector3(10, 9, 0),
+        new THREE.Vector3(9, 10, 0),
+        new THREE.Vector3(0, 10, 0),
+      ])
+      const points = curve.getPoints(100);
+      console.log(points)
+
+      const lineMesh = new THREE.Line(
+        new THREE.BufferGeometry().setFromPoints(points),
+        new THREE.MeshBasicMaterial({color: 0x0000ff})
+      )
+      scene.add(lineMesh)
+
+      const flow = new Flow(box)
+      flow.updateCurve(0, curve)
+      scene.add(flow.object3D)
+
+
+
+
+      document.body.append(renderer.domElement);
+      const controller = new OrbitControls(camera, renderer.domElement);
+      renderer.setAnimationLoop(function () {
+        renderer.render(scene, camera);
+        flow.moveAlongCurve( 0.003 )
+      });
+    </script>
+  </body>
+</html>

@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+    <script type="importmap">
+      {
+        "imports": {
+          "three": "/node_modules/three/src/Three.js",
+          "three/examples/jsm/": "/node_modules/three/examples/jsm/"
+        }
+      }
+    </script>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+      }
+    </style>
+  </head>
+  <body>
+    <script type="module">
+      import * as THREE from "three";
+      import Stats from "/node_modules/three/examples/jsm/libs/stats.module.js";
+      import { GUI } from "/node_modules/three/examples/jsm/libs/lil-gui.module.min.js";
+
+      import { GLTFLoader } from "/node_modules/three/examples/jsm/loaders/GLTFLoader.js";
+      import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
+
+      let scene, renderer, camera, stats;
+      let model, skeleton, mixer, clock;
+
+      const crossFadeControls = [];
+
+      let idleAction, walkAction, runAction;
+      let idleWeight, walkWeight, runWeight;
+      let actions, settings;
+
+      let singleStepMode = false;
+      let sizeOfNextStep = 0;
+
+      init();
+
+      function init() {
+        const container = document.getElementById("container");
+
+        camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 1, 1000);
+        camera.position.set(0, 90, 0);
+        camera.lookAt(0, 1, 0);
+
+        clock = new THREE.Clock();
+
+        scene = new THREE.Scene();
+        scene.background = new THREE.Color(0xa0a0a0);
+        // scene.fog = new THREE.Fog(0xa0a0a0, 10, 50);
+
+        // const hemiLight = new THREE.HemisphereLight(0xffffff, 0x444444);
+        // hemiLight.position.set(0, 20, 0);
+        // scene.add(hemiLight);
+
+        // const dirLight = new THREE.DirectionalLight(0xffffff);
+        // dirLight.position.set(-3, 10, -10);
+        // dirLight.castShadow = true;
+        // dirLight.shadow.camera.top = 2;
+        // dirLight.shadow.camera.bottom = -2;
+        // dirLight.shadow.camera.left = -2;
+        // dirLight.shadow.camera.right = 2;
+        // dirLight.shadow.camera.near = 0.1;
+        // dirLight.shadow.camera.far = 40;
+        // scene.add(dirLight);
+
+        // scene.add( new THREE.CameraHelper( dirLight.shadow.camera ) );
+
+        scene.add(new THREE.AmbientLight(0xffffff, 1));
+
+        // ground
+
+        // const mesh = new THREE.Mesh(
+        //   new THREE.PlaneGeometry(100, 100),
+        //   new THREE.MeshPhongMaterial({ color: 0x999999, depthWrite: false })
+        // );
+        // mesh.rotation.x = -Math.PI / 2;
+        // mesh.receiveShadow = true;
+        // scene.add(mesh);
+
+        const loader = new GLTFLoader();
+        // loader.crossOrigin = ''
+        confirm(333)
+        loader.load("http://10.11.42.16:8880/animation/666.glb", function (gltf) {
+          model = gltf.scene;
+          scene.add(model);
+
+          console.log(gltf);
+
+          let map = null;
+          model.traverse(function (object) {
+            if (object.name === "Plane001") {
+              map = object.material.map;
+              object.material.map = null;
+            }
+          });
+          model.traverse(function (object) {
+            if (object.name === "Line006") {
+              // object.material.lightMap = map;
+              object.material.lightMap = new THREE.TextureLoader().load('http://10.11.42.16:8880/animation/ddd.jpg');
+              object.material.lightMapIntensity = 3;
+              
+            }
+          });
+
+          new OrbitControls(camera, renderer.domElement);
+
+          animate();
+          alert(333)
+        }, () => {}, (err) => {
+          alert(err)
+        });
+
+        renderer = new THREE.WebGLRenderer({
+          antialias: true,
+        });
+        renderer.setPixelRatio(window.devicePixelRatio);
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.outputEncoding = THREE.sRGBEncoding;
+        renderer.shadowMap.enabled = true;
+        document.body.appendChild(renderer.domElement);
+
+        window.addEventListener("resize", onWindowResize);
+      }
+
+      function onWindowResize() {
+        camera.aspect = window.innerWidth / window.innerHeight;
+        camera.updateProjectionMatrix();
+
+        renderer.setSize(window.innerWidth, window.innerHeight);
+      }
+
+      function animate() {
+        requestAnimationFrame(animate);
+
+        let mixerUpdateDelta = clock.getDelta();
+        renderer.render(scene, camera);
+      }
+    </script>
+  </body>
+</html>

@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+    <script type="importmap">
+      {
+        "imports": {
+          "three": "/node_modules/three/src/Three.js",
+          "three/examples/jsm/": "/node_modules/three/examples/jsm/"
+        }
+      }
+    </script>
+    <!-- in vec3 position;
+    in mat4 projectionMatrix;
+    in mat4 modelViewMatrix; -->
+    <script id="vertex" type="x-shader/x-vertex">
+
+      void main() {
+        gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+      }
+    </script>
+    <script id="fragment" type="x-shader/x-fragment">
+      #define BB 0.1
+      void main() {
+        gl_FragColor = vec4(BB, 0.5, 0.5, 1.0);
+      }
+    </script>
+  </head>
+  <body>
+    <script type="module">
+      import * as THREE from "three";
+      import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
+
+      const renderer = new THREE.WebGLRenderer({});
+      renderer.setSize(800, 800);
+
+      const camera = new THREE.PerspectiveCamera(50, 1, 1, 100);
+      camera.position.set(0, 0, 50);
+
+      const scene = new THREE.Scene();
+
+      const boxGmt = new THREE.BoxGeometry(5, 5, 5);
+      const boxMtl = new THREE.MeshBasicMaterial({ color: 0xff0000 });
+      const box = new THREE.Mesh(boxGmt, boxMtl);
+      scene.add(box);
+
+      const g2 = new THREE.Group();
+      g2.position.set(5, 5, 0);
+      g2.add(box);
+      const g = new THREE.Group();
+      g.position.set(5, 5, 0);
+      g.add(g2);
+
+      scene.add(g);
+      g.updateWorldMatrix(true, true);
+      console.log(g, g.matrix.clone().toArray(), g.matrixWorld.clone().toArray());
+
+      const planeGmt = new THREE.PlaneGeometry(10, 10, 1, 1);
+      const planeMtl = new THREE.ShaderMaterial({
+        vertexShader: document.getElementById("vertex").textContent,
+        fragmentShader: document.getElementById("fragment").textContent,
+      });
+      const plane = new THREE.Mesh(planeGmt, planeMtl);
+      scene.add(plane);
+
+      scene.add(new THREE.AxesHelper(10));
+      scene.add(new THREE.AmbientLight(0xffffff, 0.5));
+
+      // g.matrixWorld.copy(new THREE.Matrix4());
+      // const m = g.matrixWorld.clone();
+      // const mi = m.clone().invert();
+      // g.applyMatrix4(mi);
+      // g.updateWorldMatrix(false, true);
+      // g.children[0].applyMatrix4(m);
+
+      localToZero(g);
+
+      console.log(scene);
+
+      document.body.append(renderer.domElement);
+      const controller = new OrbitControls(camera, renderer.domElement);
+      renderer.setAnimationLoop(function () {
+        renderer.render(scene, camera);
+      });
+
+      function localToZero(obj) {
+        const m = obj.matrixWorld.clone();
+        const mi = m.clone().invert();
+        obj.applyMatrix4(mi);
+        obj.updateWorldMatrix(false, true);
+
+        if (obj.geometry) {
+          obj.geometry.applyMatrix4(m);
+        }
+
+        obj.children.forEach((child) => {
+          child.applyMatrix4(m);
+          child.updateWorldMatrix(false, true);
+          console.log(123, child.name, child.matrixWorld.toArray());
+          localToZero(child);
+        });
+      }
+    </script>
+  </body>
+</html>

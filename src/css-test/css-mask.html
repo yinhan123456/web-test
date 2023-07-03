@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+
+    <style>
+      #container {
+        width: 800px;
+      }
+      img {
+        width: 100%;
+      }
+      #container2 {
+        background-image: linear-gradient(
+          rgba(255, 0, 0, 0),
+          rgba(0, 255, 0, 1),
+          rgba(0, 0, 255, 0)
+        );
+        width: 100px;
+
+        position: absolute;
+        left: 100px;
+        top: 10px;
+      }
+      #container2 content {
+      }
+      #container2 p {
+        mask-mode: alpha;
+        color: white;
+      }
+
+      .gradient-text-two {
+        color: red;
+      }
+      
+      #test {
+        font-weight: bolder;
+        -webkit-mask-image:linear-gradient(transparent, green, transparent);
+      }
+    </style>
+  </head>
+  <body>
+    <div id="test">
+      <p>123123123123</p>
+      <p>123123123123</p>
+      <p>123123123123</p>
+      <p>123123123123</p>
+      <p>123123123123</p>
+      <p>123123123123</p>
+      <p>123123123123</p>
+    </div>
+  </body>
+</html>

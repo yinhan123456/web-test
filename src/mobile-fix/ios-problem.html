@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <!-- <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, maximum-scale=1, minimum-scale=1, user-scalable=no"
+    /> -->
+    <!-- <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, height=device-height, minimum-scale=1.0, user-scalable=0"
+    /> -->
+
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <title>Document</title>
+    <style>
+      #root,
+      body {
+        position: absolute;
+        top: 0;
+        right: 0;
+        bottom: 0;
+        left: 0;
+        overflow: hidden;
+      }
+      * {
+        touch-action: none !important;
+      }
+      #test {
+        width: 400px;
+        height: 400px;
+        background: green;
+        position: absolute;
+        left: 0;
+        top: 0;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="test" draggable="false"></div>
+    <script>
+      window.onload = function () {
+        const testEle = document.querySelector("#test");
+        document.documentElement.onclick = function () {
+          console.log(444);
+          e.preventDefault();
+        };
+        // testEle.ontouchstart = function (e) {
+        //   e.preventDefault();
+        //   e.stopPropagation();
+        // };
+        // testEle.onpointerdown = function (e) {
+        //   e.preventDefault();
+        //   e.stopPropagation();
+        // };
+      };
+    </script>
+  </body>
+</html>

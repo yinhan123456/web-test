@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+    <script type="importmap">
+      {
+        "imports": {
+          "three": "/node_modules/three/src/Three.js",
+          "three/examples/jsm/": "/node_modules/three/examples/jsm/"
+        }
+      }
+    </script>
+  </head>
+  <body>
+    <script type="module">
+      import * as THREE from "three";
+      import { Vector2 } from "three";
+      import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
+      import { Flow } from "three/examples/jsm/modifiers/CurveModifier.js";
+      import { FBXLoader } from "three/examples/jsm/loaders/FBXLoader.js";
+      import { OBJLoader } from "three/examples/jsm/loaders/OBJLoader.js";
+      import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
+
+      const renderer = new THREE.WebGLRenderer({});
+      renderer.setSize(800, 800);
+
+      const camera = new THREE.PerspectiveCamera(50, 1, 1, 1000);
+      camera.position.set(0, 0, 50);
+
+      const scene = new THREE.Scene();
+
+      const hemiLight = new THREE.HemisphereLight(0xffffff, 0x444444);
+      hemiLight.position.set(0, 1, 0);
+      scene.add(hemiLight);
+
+      const dirLight = new THREE.DirectionalLight(0xffffff);
+      dirLight.position.set(0, 1, 0);
+      scene.add(dirLight);
+
+      // grid
+      const gridHelper = new THREE.GridHelper(28, 28, 0x303030, 0x303030);
+      scene.add(gridHelper);
+
+      // const loader = new FBXLoader();
+      // const loader = new OBJLoader();
+      // const loader = new GLTFLoader();
+      // loader.load("./nurbs.fbx", (line) => {
+      // loader.load("./line.fbx", (line) => {
+      // loader.load("./123.glb", (line) => {
+      //   console.log(1111111, line);
+      //   scene.add(line);
+      // });
+
+      function computeTangentScalar(p0, p3, t, p, a01, a32) {
+        const t0 = Math.pow(1 - t, 3);
+        const t1 = Math.pow(1 - t, 2) * t * 3;
+        const t2 = (1 - t) * Math.pow(t, 2) * 3;
+        const t3 = Math.pow(t, 3);
+
+        const directions = ["x", "y", "z"];
+        for (const dir of directions) {
+          const divisor = a01[dir] * t1 + a32[dir] * t2;
+          if (divisor) {
+            const dividend = p[dir] - (p0[dir] * (t0 + t1) + p3[dir] * (t2 + t3));
+            return dividend / divisor;
+          }
+        }
+
+        return 0;
+      }
+
+      // 该路径的控制点
+      const p0 = new THREE.Vector3(-50, 0, 0);
+      const a0 = new THREE.Vector3(-50, 0, -50);
+      const p3 = new THREE.Vector3(50, 0, 0);
+      const a3 = new THREE.Vector3(50, 0, -50);
+      const p = new THREE.Vector3(0, 0, 10);
+
+      // 两条线段的切向量
+      const d01 = a0.clone().sub(p0).normalize();
+      const d32 = a3.clone().sub(p3).normalize();
+
+      // 两条线段
+      const lineCurve1 = new THREE.LineCurve3(a0, p0);
+      const lineCurve2 = new THREE.LineCurve3(p3, a3);
+
+      // 根据控制点p计算得到三次贝塞尔曲线控制点参数
+      const a = computeTangentScalar(p0, p3, 0.5, p, d01, d32);
+
+      // 获取贝塞尔曲线
+      const bezierCurve = new THREE.CubicBezierCurve3(
+        p0,
+        // p0.clone().add(d01.multiplyScalar(a)),
+        a0,
+        // p3.clone().add(d32.multiplyScalar(a)),
+        a3,
+        p3
+      );
+
+      const curveLength = bezierCurve.getLength();
+      console.log("curveLength: ", curveLength);
+      const t = bezierCurve.getUtoTmapping(0.01, 5);
+      console.log(".getUtoTmapping: ", t);
+      console.log(bezierCurve.toJSON());
+
+      // 线段、曲线组合
+      const curvePath = new THREE.CurvePath();
+      // curvePath.add(lineCurve1);
+      curvePath.add(bezierCurve);
+      // curvePath.add(lineCurve2);
+      const totalLength = curvePath.getLength();
+
+      // 显示整个路径
+      const roadPoints = curvePath.getSpacedPoints(10);
+      const geometry = new THREE.BufferGeometry().setFromPoints(roadPoints);
+
+      const dataURI =
+        "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAIAAAD8GO2jAAAACXBIWXMAAC4jAAAuIwF4pT92AAAAi0lEQVRIx83WQQ6AIAwEwMXwb/p0b4SI1CJsS08e2k0nKDGVUsCsDEBESOkikusTIx3ABXJdJEEN9BLsRbRRjoJdiEeIr2Ad0Y+7C1YQr4MRgn+I0UiQYBahNMcJ7Ai9LVRgQXw2RAv0HS2HdIBgtKnxHTtD0O9r/86PEbRbT11TdEHecukrldi/7zd8KDG/sdhdzgAAAABJRU5ErkJggg==";
+      const map = new THREE.TextureLoader().load(dataURI);
+      // map.wrapS = THREE.RepeatWrapping;
+      // map.wrapT = THREE.RepeatWrapping;
+      // map.repeat = new THREE.Vector2(1, 1);
+      // map.rotation = Math.PI / 2;
+      map.wrapS = THREE.ClampToEdgeWrapping;
+      map.wrapT = THREE.ClampToEdgeWrapping;
+      map.magFilter = THREE.NearestFilter;
+      map.minFilter = THREE.NearestFilter;
+
+      const height = 5;
+      const width = 5;
+      const shape = new THREE.Shape();
+      // shape.moveTo(width / 2, height / 2);
+      // shape.lineTo(width / 2, -height / 2);
+      // shape.lineTo(-width / 2, -height / 2);
+      // shape.lineTo(-width / 2, height / 2);
+      // shape.lineTo(width / 2, height / 2);
+      shape.moveTo(0, 0);
+        shape.lineTo(0, 1);
+        shape.lineTo(0, 2);
+        shape.lineTo(0, 3);
+        shape.lineTo(0, 4);
+        shape.lineTo(0, 5);
+        shape.lineTo(1, 5);
+        shape.lineTo(2, 5);
+        shape.lineTo(3, 5);
+        shape.lineTo(4, 5);
+        shape.lineTo(5, 5);
+        shape.lineTo(5, 4);
+        shape.lineTo(5, 3);
+        shape.lineTo(5, 2);
+        shape.lineTo(5, 1);
+        shape.lineTo(5, 0);
+        shape.lineTo(4, 0);
+        shape.lineTo(3, 0);
+        shape.lineTo(2, 0);
+        shape.lineTo(1, 0);
+        shape.lineTo(0, 0);
+
+      const extrudeSettings = {
+        steps: 10,
+        depth: 1,
+        bevelEnabled: false,
+        extrudePath: curvePath,
+
+        UVGenerator: {
+          generateTopUV: function (geometry, vertices, idxA, idxB, idxC) {
+          var ax, ay, bx, by, cx, cy;
+
+          ax = vertices[idxA * 3];
+          ay = vertices[idxA * 3 + 1];
+          bx = vertices[idxB * 3];
+          by = vertices[idxB * 3 + 1];
+          cx = vertices[idxC * 3];
+          cy = vertices[idxC * 3 + 1];
+          return [new THREE.Vector2(ax, ay), new THREE.Vector2(bx, by), new THREE.Vector2(cx, cy)];
+        },
+        generateSideWallUV: function (geometry, vertices, idxA, idxB, idxC, idxD) {
+          return [
+            new THREE.Vector2(0, 0),
+            new THREE.Vector2(1, 0),
+            new THREE.Vector2(1, 1),
+            new THREE.Vector2(0, 1),
+          ];
+        },
+        },
+      };
+
+      const g = new THREE.ExtrudeGeometry(shape, extrudeSettings);
+      g.computeBoundingBox();
+      g.computeVertexNormals(true);
+      const material = new THREE.MeshPhongMaterial({ map, wireframe: false, });
+      const mesh = new THREE.Mesh(g, material);
+      scene.add(mesh);
+      console.log(g);
+
+      // 显示控制点
+      const boxGmt = new THREE.BoxGeometry(1, 1, 1);
+      const boxMtl = new THREE.MeshMatcapMaterial({ color: 0x00ff00 });
+      const box = new THREE.Mesh(boxGmt, boxMtl);
+      // box.position.copy(p);
+      scene.add(box);
+
+      // 路径动画
+      const car = box.clone();
+      car.position.set(0, 0, 0);
+      scene.add(car);
+      const duration = 5;
+      const times = [];
+      const values = [];
+      roadPoints.forEach((v, i) => {
+        times.push((duration / 100) * i);
+        values.push(...v.toArray());
+      });
+      const kf = new THREE.VectorKeyframeTrack(".position", times, values);
+      const clip = new THREE.AnimationClip("driving", duration, [kf]);
+      const mixer = new THREE.AnimationMixer(car);
+      const action = mixer.clipAction(clip);
+      action.play();
+
+      // flow
+      // const map = new THREE.TextureLoader().load("./1.jpg");
+      // map.wrapS = THREE.RepeatWrapping;
+      // map.wrapT = THREE.RepeatWrapping;
+      // map.repeat = new THREE.Vector2(totalLength, 1);
+      // const road = new THREE.Mesh(
+      //   new THREE.PlaneGeometry(10 * totalLength, 10, 10 * totalLength, 10),
+      //   new THREE.MeshBasicMaterial({ color: 0xffffff, map })
+      // );
+      // road.rotation.x = -Math.PI / 2;
+      // const flow = new Flow(road, 1);
+      // flow.updateCurve(0, curvePath);
+      // scene.add(flow.object3D);
+      // scene.add(road)
+
+      // 渲染
+      document.body.append(renderer.domElement);
+      const controller = new OrbitControls(camera, renderer.domElement);
+      const clock = new THREE.Clock();
+      renderer.setAnimationLoop(function () {
+        mixer.update(clock.getDelta());
+        // console.log(action.time)
+        renderer.render(scene, camera);
+        // map.offset.x += 0.001;
+      });
+
+      // let points = [
+      //   new Vec3(-width / 2, -height / 2, 0),
+      //   new Vec3(-width / 2, height / 2, 0),
+      //   new Vec3(width / 2, height / 2, 0),
+      //   new Vec3(width / 2, -height / 2, 0),
+      // ];
+      // if (!scope.clockwise) {
+      //   points = [
+      //     new Vec3(-width / 2, -height / 2, 0),
+      //     new Vec3(width / 2, -height / 2, 0),
+      //     new Vec3(width / 2, height / 2, 0),
+      //     new Vec3(-width / 2, height / 2, 0),
+      //   ];
+      // }
+      // for (let j = 0; j <= points.length; j++) {
+      //   let jj = j == points.length ? 0 : j;
+      //   let point = points[jj];
+      //   let radius = Math.hypot(point.x, point.y);
+      //   const sin = point.y / radius;
+      //   const cos = point.x / radius;
+
+      //   normal.x = cos * N.x + sin * B.x;
+      //   normal.y = cos * N.y + sin * B.y;
+      //   normal.z = cos * N.z + sin * B.z;
+      //   normal.normalize();
+
+      //   normals.push(0, 1, 0);
+      //   // vertex
+      //   vertex.x = P.x + radius * normal.x;
+      //   vertex.y = P.y + radius * normal.y;
+      //   vertex.z = P.z + radius * normal.z;
+
+      //   vertices.push(vertex.x, vertex.y, vertex.z);
+      // }
+    </script>
+  </body>
+</html>

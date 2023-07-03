@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+    <script type="importmap">
+      {
+        "imports": {
+          "three": "/node_modules/three/src/Three.js",
+          "three/examples/jsm/": "/node_modules/three/examples/jsm/"
+        }
+      }
+    </script>
+  </head>
+  <body>
+    <script type="module">
+      import * as THREE from "three";
+      import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
+      import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
+      import { RGBELoader } from "three/examples/jsm/loaders/RGBELoader.js";
+
+      const renderer = new THREE.WebGLRenderer({ antialias: true });
+      renderer.setSize(1000, 1000);
+
+      const camera = new THREE.PerspectiveCamera(50, 1, 0.1, 1000);
+      camera.position.set(0,10, 0);
+      camera.lookAt(0, 0, 0);
+
+      const scene = new THREE.Scene();
+
+      new GLTFLoader().load("./777.glb", (model) => {
+        console.log(model);
+        scene.add(model.scene);
+      });
+
+      scene.add(new THREE.AmbientLight(0xffffff, 1));
+      document.body.append(renderer.domElement);
+      // const controller = new OrbitControls(camera, renderer.domElement);
+
+
+
+      // setInterval(() => {
+      //   camera.rotation.z += 0.01
+      //   // camera.rotation.y += 0.01
+      //   // camera.rotation.x += 0.01
+
+      //   // camera.rotation.from
+
+      //   console.log(1111111, camera.rotation)
+
+      // }, 100)
+      // camera.position
+
+
+
+      renderer.setAnimationLoop(function () {
+        renderer.render(scene, camera);
+      });
+    </script>
+  </body>
+</html>

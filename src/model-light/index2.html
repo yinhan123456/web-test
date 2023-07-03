@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+    <script type="importmap">
+      {
+        "imports": {
+          "three": "/node_modules/three/src/Three.js",
+          "three/examples/jsm/": "/node_modules/three/examples/jsm/"
+        }
+      }
+    </script>
+  </head>
+  <body>
+    <script type="module">
+      import * as THREE from "three";
+      import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
+      import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
+      import { RGBELoader } from "three/examples/jsm/loaders/RGBELoader.js";
+
+      const renderer = new THREE.WebGLRenderer({ antialias: true });
+      renderer.setSize(1000, 1000);
+
+      const camera = new THREE.PerspectiveCamera(50, 1, 0.01, 1000);
+      camera.position.set(0,10, 10);
+      camera.lookAt(0, 0, 0);
+
+      const scene = new THREE.Scene();
+
+      // const envMap = new RGBELoader().load("./666.hdr");
+      // envMap.mapping = THREE.EquirectangularReflectionMapping;
+      // scene.environment = envMap;
+
+      new GLTFLoader().load("./777.glb", (model) => {
+        console.log(model);
+
+        // const box = model.scene.children[1]
+        // console.log(33333333, box.userData.lightMap)
+        // box.material.map = box.userData.lightMap
+        // const uv = box.geometry.getAttribute("uv");
+        // var uvs = box.geometry.attributes.uv.array;
+        // box.geometry.setAttribute("uv2", new THREE.BufferAttribute(uvs, 2));
+
+
+        // box.
+
+        // const emissiveMap = box.material.emissiveMap
+        // box.material.lightMap = emissiveMap
+        // box.material.emissiveMap = null
+        // console.log(box)
+
+        scene.add(model.scene);
+      });
+
+      // const dl = new THREE.DirectionalLight(0xffffff, 0.3);
+      // dl.position.set(1, 1, 1);
+      // scene.add(dl);
+      // const dl2 = new THREE.DirectionalLight(0xffffff, 0.1);
+      // dl2.position.set(1, 1, -1);
+      // scene.add(dl2);
+      // const dl3 = new THREE.DirectionalLight(0xffffff, 0.2);
+      // dl3.position.set(-1, 1, -1);
+      // scene.add(dl3);
+      // const dl4 = new THREE.DirectionalLight(0xffffff, 0.1);
+      // dl4.position.set(-1, 1, 1);
+      // scene.add(dl4);
+
+      scene.add(new THREE.AmbientLight(0xffffff, 1));
+      document.body.append(renderer.domElement);
+      const controller = new OrbitControls(camera, renderer.domElement);
+      renderer.setAnimationLoop(function () {
+        renderer.render(scene, camera);
+      });
+    </script>
+  </body>
+</html>

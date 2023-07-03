@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+    <script type="importmap">
+      {
+        "imports": {
+          "three": "/node_modules/three/src/Three.js",
+          "three/examples/jsm/": "/node_modules/three/examples/jsm/"
+        }
+      }
+    </script>
+  </head>
+  <body>
+    <script type="module">
+      import * as THREE from "three";
+      import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
+      import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
+      import { RGBELoader } from "three/examples/jsm/loaders/RGBELoader.js";
+
+      const renderer = new THREE.WebGLRenderer({ antialias: true });
+      renderer.setSize(1000, 1000);
+
+      const camera = new THREE.PerspectiveCamera(50, 1, 0.1, 1000);
+      camera.position.set(0, 0, 5);
+      camera.lookAt(0, 0, 0);
+
+      const scene = new THREE.Scene();
+
+      const envMap = new RGBELoader().load("./666.hdr");
+      envMap.mapping = THREE.EquirectangularReflectionMapping;
+      scene.environment = envMap;
+
+      const texture = new THREE.TextureLoader().load("./111.jpg");
+      texture.wrapS = THREE.ClampToEdgeWrapping;
+      texture.wrapT = THREE.ClampToEdgeWrapping;
+      const lightMap = new THREE.TextureLoader().load("./888.png");
+      lightMap.wrapS = THREE.ClampToEdgeWrapping;
+      lightMap.wrapT = THREE.ClampToEdgeWrapping;
+      const normalMap = new THREE.TextureLoader().load("./999.jpg");
+      normalMap.wrapS = THREE.ClampToEdgeWrapping;
+      normalMap.wrapT = THREE.ClampToEdgeWrapping;
+
+      setTimeout(() => {
+        // const boxGmt = new THREE.BoxGeometry(1, 1, 1);
+        // const boxMtl = new THREE.MeshPhysicalMaterial({
+        //   // map: texture,
+        //   color: 0x555555,
+        //   aoMap: lightMap,
+        //   // lightMapIntensity: 1,
+        //   side: THREE.DoubleSide,
+        //   transparent: true,
+        //   color: 0xffffff,
+        //   // transmission: 0.8,
+        //   opacity: 1,
+        //   metalness: 0.5,
+        //   roughness: 1,
+        //   // ior: 1.5,
+        //   // thickness: 0.1,
+        //   // specularIntensity: 1,
+        //   // specularColor: 0xffffff,
+        //   // envMapIntensity: 1,
+        //   // lightIntensity: 1,
+        //   // exposure: 1,
+        // });
+        // const box = new THREE.Mesh(boxGmt, boxMtl);
+        // box.position.y = 1;
+        // scene.add(box);
+
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        const planeGmt = new THREE.PlaneGeometry(2, 3);
+        const uv = planeGmt.getAttribute("uv");
+        
+        var uvs = planeGmt.attributes.uv.array;
+        planeGmt.setAttribute("uv2", new THREE.BufferAttribute(uvs, 2));
+        const planeMtl = new THREE.MeshPhongMaterial({
+          // map: texture,
+          color: 0x999999,
+          // lightMap,
+          // lightMapIntensity: 1,
+          // side: THREE.DoubleSide,
+          // transparent: true,
+          // color: 0xffffff,
+          // transmission: 1,
+          // opacity: 1,
+          // metalness: 0,
+          // roughness: 0.8,
+          // ior: 1.5,
+          // thickness: 0.01,
+          // specularIntensity: 1,
+          // specularColor: 0xffffff,
+          // envMapIntensity: 1,
+          // lightIntensity: 1,
+          normalMap,
+          normalScale: new THREE.Vector2(10, 10),
+          // exposure: 1,
+        });
+        const plane = new THREE.Mesh(planeGmt, planeMtl);
+        plane.rotation.x = -Math.PI / 2;
+        plane.renderOrder = 2;
+        plane.position.y = 1;
+        scene.add(plane);
+        console.log(44444444, planeMtl)
+      }, 1000)
+
+
+      new GLTFLoader().load("./555.glb", (model) => {
+        console.log(model);
+        // model.scene.children[0].material = new THREE.MeshPhongMaterial({ color: 0xfffffff });
+        scene.add(model.scene);
+      });
+
+      const dl = new THREE.DirectionalLight(0xffffff, 0.3);
+      dl.position.set(1, 1, 1);
+      scene.add(dl);
+      const dl2 = new THREE.DirectionalLight(0xffffff, 0.3);
+      dl2.position.set(1, 1, -1);
+      scene.add(dl2);
+      const dl3 = new THREE.DirectionalLight(0xffffff, 0.3);
+      dl3.position.set(-1, 1, -1);
+      scene.add(dl3);
+      const dl4 = new THREE.DirectionalLight(0xffffff, 0.3);
+      dl4.position.set(-1, 1, 1);
+      scene.add(dl4);
+
+      // for (let i = 0; i < 10; i++) {
+      //   const pl = new THREE.PointLight(0xffffff, 0.1)
+      //   pl.position.set(10, 10 + i, 10)
+      //   scene.add(pl)
+      // }
+
+      scene.add(new THREE.AmbientLight(0xffffff, 0.3));
+      document.body.append(renderer.domElement);
+      const controller = new OrbitControls(camera, renderer.domElement);
+      renderer.setAnimationLoop(function () {
+        renderer.render(scene, camera);
+      });
+    </script>
+  </body>
+</html>

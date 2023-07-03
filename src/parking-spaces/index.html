@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+    <script type="importmap">
+      {
+        "imports": {
+          "three": "/node_modules/three/src/Three.js",
+          "three/examples/jsm/": "/node_modules/three/examples/jsm/"
+        }
+      }
+    </script>
+  </head>
+  <body>
+    <script type="module">
+      import * as THREE from "three";
+      import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
+      import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
+      import { RGBELoader } from "three/examples/jsm/loaders/RGBELoader.js";
+      import { parseSpace } from "./parseSpace.js";
+      import { parseRoad } from "./parseRoad.js";
+
+      const renderer = new THREE.WebGLRenderer({ antialias: true });
+      renderer.setSize(900, 900);
+
+      // const camera = new THREE.PerspectiveCamera(60, 1, 0.01, 1000);
+      const camera = new THREE.OrthographicCamera(-100, 100, 100, -100, 1, 1000);
+      camera.position.set(0, 100, 0);
+      camera.lookAt(0, 0, 0);
+
+      const scene = new THREE.Scene();
+
+      new GLTFLoader().load("./ball.glb", (model) => {
+        console.log(model);
+        model.scene.name = "parking";
+        scene.add(model.scene);
+
+        let spaces;
+        let roadsObj;
+
+        model.scene.traverse((obj) => {
+          if (obj.name === "parking_spaces") spaces = obj;
+          else if (obj.name === "parking_path") roadsObj = obj;
+        });
+
+        const roadInfo = parseRoad(roadsObj, scene);
+        const spaceInfos = []
+        spaces.children.forEach(space => {
+          const mtl1 = new THREE.MeshBasicMaterial({ color: 0xff0000, wireframe: true });
+          const mtl2 = new THREE.MeshBasicMaterial({ color: 0x00ff00, wireframe: true });
+          // space.children[0].material = mtl1;
+          // space.children[1].material = mtl2;
+  
+          const spaceInfo = parseSpace(space, roadInfo, scene);
+
+          spaceInfo.name = spaceInfo.id = space.name
+          spaceInfos.push(spaceInfo)
+        })
+
+        console.log(roadInfo, spaceInfos)
+        console.log(JSON.stringify(
+          {
+            spaces: spaceInfos,
+            ...roadInfo
+          }
+        ))
+
+      });
+
+      const dl = new THREE.DirectionalLight(0xffffff, 0.3);
+      dl.position.set(1, 1, 1);
+      scene.add(dl);
+      const dl2 = new THREE.DirectionalLight(0xffffff, 0.1);
+      dl2.position.set(1, 1, -1);
+      scene.add(dl2);
+      const dl3 = new THREE.DirectionalLight(0xffffff, 0.2);
+      dl3.position.set(-1, 1, -1);
+      scene.add(dl3);
+      const dl4 = new THREE.DirectionalLight(0xffffff, 0.1);
+      dl4.position.set(-1, 1, 1);
+      scene.add(dl4);
+
+      scene.add(new THREE.AmbientLight(0xffffff, 1));
+      scene.add(new THREE.AxesHelper(100));
+      document.body.append(renderer.domElement);
+      const controller = new OrbitControls(camera, renderer.domElement);
+      renderer.setAnimationLoop(function () {
+        renderer.render(scene, camera);
+      });
+    </script>
+  </body>
+</html>

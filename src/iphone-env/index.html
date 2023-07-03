@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <title>Document</title>
+    <style>
+      body {
+      }
+      #id1 {
+        width: 150px;
+        height: 150px;
+        background: green;
+        position: fixed;
+        left: env(safe-area-inset-left);
+      }
+      #id2 {
+        width: 150px;
+        height: 150px;
+        background: green;
+        position: fixed;
+        right: 0;
+        /* margin-left: env(safe-area-inset-bottom); */
+      }
+      #id3 {
+        width: 150px;
+        height: 150px;
+        background: green;
+        position: fixed;
+        bottom: 0;
+        bottom: constant(safe-area-inset-bottom);
+        bottom: env(safe-area-inset-bottom);
+      }
+    </style>
+  </head>
+  <body>
+    <div id="id1"></div>
+    <div id="id2"></div>
+    <div id="id3"></div>
+  </body>
+</html>
