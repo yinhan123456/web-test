@@ -7,7 +7,6 @@ export function parseRoad(roadMesh, scene) {
   const crossingPosition = [];
   const roads = [];
   roadMesh.children.forEach((obj) => {
-    console.log(11111111, obj)
     obj.updateWorldMatrix(true, false);
     obj.geometry.computeBoundingSphere();
     const p = obj.geometry.boundingSphere.center.clone();

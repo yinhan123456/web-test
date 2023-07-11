@@ -1,10 +1,15 @@
 import * as THREE from "three";
 import { getRoadDirection } from "./getRoadDirection.js";
 import * as BufferGeometryUtils from "three/examples/jsm/utils/BufferGeometryUtils.js";
+import { around, similar } from "./utils.js";
 
 function simplifyNumber(num) {
   return num.toFixed(4);
 }
+
+    // 负一层部分车位数据单独处理
+    const directionWrongSpace =  ["224",   "246",  "241",  "240", 	"161",	"156", "157", "089", "091", "057", "012", "015", "027",
+    ]
 
 export function parseSpace(spaceMesh, roadInfo, scene) {
   // 合并mesh
@@ -66,26 +71,51 @@ export function parseSpace(spaceMesh, roadInfo, scene) {
     // 车位方向
     const direction = positionCache[size[1].index].clone().sub(positionCache[0]).normalize();
     // 道路方向
-    const { direction: roadDirection } = getRoadDirection(center, roadInfo, scene);
-    // 车位方向应该于道路方向夹角小于90
+    const { direction: roadDirection, roadIndex, roadIndexWidthBlocking } = getRoadDirection(center, roadInfo, scene);
+
+
+    // 车位方向应该与道路方向夹角小于90
     if (direction.angleTo(roadDirection) > Math.PI / 2) {
       direction.multiplyScalar(-1);
     }
 
     // 箭头
-    const arrowHelper = new THREE.ArrowHelper(direction, center, 5, 0xfff000);
+    const arrowHelper = new THREE.ArrowHelper(direction, center.clone().add(new THREE.Vector3(0, 0.1, 0)), 5, 0xfff000);
     scene.add(arrowHelper);
 
     // 计算于-z的角度
     let angle = direction.angleTo(directionNZ);
-    angle = simplifyNumber(direction.x > 0 ? -angle : angle);
+    angle = parseFloat(simplifyNumber(direction.x > 0 ? -angle : angle));
 
-    return {
-      position: center.toArray().map(n => around(n)),
+    const result = {
+      center: center.toArray().map(n => around(n)),
       width: around(width),
       height: around(height),
-      angle: around(parseFloat(angle)),
-    };
+    }
+
+
+    if (roadIndex !== roadIndexWidthBlocking) {
+      result.roadIndex = roadIndexWidthBlocking
+      console.error(spaceMesh.name + "路径不匹配")
+    }
+
+    // 负一层部分车位数据单独处理
+    const directionWrongSpace = ["224","246","241","240", "161","156","157","089","091","057","012","015","027"]
+    if (directionWrongSpace.includes(spaceMesh.name)) {
+      if (similar(angle, Math.PI)) {
+        angle -= Math.PI
+      } else {
+        angle += Math.PI
+      }
+      console.log("角度补丁", spaceMesh.name, angle)
+    }
+
+    angle = around(angle)
+    if (!similar(angle, 0)) {
+      result.angle = angle
+    }
+
+    return result;
   } else {
     console.error(spaceMesh.name + "的positionCache元素数量不为4");
     console.error("positionCache: ", positionCache);
@@ -93,7 +123,3 @@ export function parseSpace(spaceMesh, roadInfo, scene) {
 }
 
 
-// 精确到小数点后3位
-export function around(num) {
-  return Math.round(num * 1000) / 1000;
-}
