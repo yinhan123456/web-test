@@ -1,4 +1,5 @@
 import * as THREE from "three";
+import { similar } from "./utils.js";
 
 const RISEN_HEIGHT = 1;
 
@@ -19,10 +20,11 @@ export function getRoadDirection(center, roadInfo, scene) {
     lines.push(new THREE.Line3(p1, p2));
   }
 
-  let parking;
-  scene.traverse((obj) => {
-    if (obj.name === "parking") parking = obj;
-  });
+  let parking = scene.getObjectByName('zhedang'); // TODO
+  // let parking;
+  // scene.traverse((obj) => {
+  //   if (obj.name === "zhedang") parking = obj;
+  // });
   const rc = new THREE.Raycaster();
   const risenCenter = center.clone();
   risenCenter.y += RISEN_HEIGHT;
@@ -32,6 +34,7 @@ export function getRoadDirection(center, roadInfo, scene) {
   let roadIndexWidthBlocking;
   let roadDirection;
   let roadDirectionWithBlocking;
+  const SPHERE_RADIUS = 0.5
   lines.forEach((line, index) => {
     const closestPoint = line.closestPointToPoint(risenCenter, true, new THREE.Vector3());
 
@@ -48,7 +51,7 @@ export function getRoadDirection(center, roadInfo, scene) {
     }
 
     // 添加检测球
-    const sphereGmt = new THREE.SphereGeometry(1.5);
+    const sphereGmt = new THREE.SphereGeometry(SPHERE_RADIUS);
     const mtl3 = new THREE.MeshBasicMaterial({ color: 0xff0000 });
     const sphere = new THREE.Mesh(sphereGmt, mtl3);
     sphere.position.copy(closestPoint);
@@ -62,12 +65,16 @@ export function getRoadDirection(center, roadInfo, scene) {
         minDistanceWithBlocking = obj[0].distance;
         roadDirectionWithBlocking = direction.clone();
       }
-      sphere.material.color = new THREE.Color(0x00ff00);
+      // sphere.material.color = new THREE.Color(0x00ff00);
     }
 
     // 删除检测球
     scene.remove(sphere);
   });
+
+  if (!similar(minDistance, minDistanceWithBlocking + SPHERE_RADIUS)) {
+    console.log('---路径处理',  roadIndex, roadIndexWidthBlocking)
+  }
 
   return { direction: roadDirection, roadIndex, roadIndexWidthBlocking };
 }
