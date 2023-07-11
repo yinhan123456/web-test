@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+    <script type="importmap">
+      {
+        "imports": {
+          "three": "/node_modules/three/src/Three.js",
+          "three/examples/jsm/": "/node_modules/three/examples/jsm/"
+        }
+      }
+    </script>
+  </head>
+  <body>
+    <canvas id="canv" width="800" height="800"></canvas>
+    <script type="module">
+      import * as THREE from "three";
+
+      const width = 1000;
+      const height = 1000;
+      const camera = new THREE.OrthographicCamera(
+        width / -2,
+        width / 2,
+        height / 2,
+        height / -2,
+        -100,
+        1000
+      );
+
+      const renderer = new THREE.WebGLRenderer({
+        canvas: document.querySelector("#canv"),
+      });
+
+      const scene = new THREE.Scene();
+      const boxGmt = new THREE.BoxGeometry(100, 100, 100);
+      const boxMtl = new THREE.MeshBasicMaterial({ color: 0xff0000 });
+      const box = new THREE.Mesh(boxGmt, boxMtl);
+      scene.add(box);
+
+      renderer.render(scene, camera);
+
+      // document.body.append(renderer.domElement)
+    </script>
+  </body>
+</html>
